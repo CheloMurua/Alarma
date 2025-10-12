@@ -28,7 +28,7 @@ El objetivo final es evolucionar hacia una **plataforma IoT escalable**, con alm
 🔗 [Repositorio GitHub](https://github.com/CheloMurua/Alarma/tree/main/Alarma-Movimiento-ESP32)  
 🔗 [Proyecto en Wokwi](https://wokwi.com/projects/442417296721929217)  
 🔗 [Log de requests (Postman/Wokwi)](https://mchelom.pythonanywhere.com/records)  
-🔗 [Video de prueba](#)  
+🔗 [Video de prueba](https://www.youtube.com/watch?v=wz5vR6pGSKU)  
 
 ---
 
