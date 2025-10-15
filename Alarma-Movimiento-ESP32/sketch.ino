@@ -4,14 +4,14 @@
 const char* ssid = "Wokwi-GUEST";
 const char* password = "";
 
-//Datos HiveMQ
-const char* mqttServer = "fab3aac0cefa411c98a7ebdf5a256479.s1.eu.hivemq.cloud"; // tu URL
-const int mqttPort = 8883;                // puerto TLS (seguro)
-const char* mqttUser = "mchelom";       // el usuario que creaste en HiveMQ
-const char* mqttPassword = "Cm+2458739150"; // la contraseña que creaste
-const char* topic = "alarma/movimiento";          // el tópico que elegiste
+// Datos del broker público HiveMQ (sin usuario/contraseña)
+const char* mqttServer = "broker.hivemq.com";
+const int mqttPort = 1883;                // puerto TCP sin TLS
+const char* mqttUser = "";                 // vacío
+const char* mqttPassword = "";             // vacío
+const char* topic = "alarma/movimiento";  // el tópico que elegiste
 
-WiFiClientSecure espClient;
+WiFiClient espClient;          
 PubSubClient client(espClient);
 
 const int pirPin = 13;
@@ -31,7 +31,6 @@ void setup() {
   }
   Serial.println("WiFi conectado");
 
-  espClient.setInsecure(); // Para pruebas HiveMQ
   client.setServer(mqttServer, mqttPort);
 }
 
@@ -54,7 +53,7 @@ void loop() {
 
 void reconnect() {
   while (!client.connected()) {
-    if (client.connect("ESP32Client", mqttUser, mqttPassword)) {
+    if (client.connect("ESP32Client")) { // Broker público no requiere auth
       Serial.println("MQTT conectado");
     } else {
       Serial.print("Error MQTT, rc=");

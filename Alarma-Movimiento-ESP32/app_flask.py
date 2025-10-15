@@ -17,7 +17,7 @@ CORS(app)
 def create_connection():
     try:
         connection = mysql.connector.connect(
-            host="tu_host_mysql",      # Cambiar por host de PythonAnywhere
+            host="tu_host_mysql",      # Cambiar por host de PythonAnywhere o local
             user="tu_usuario_mysql",   # Usuario MySQL
             password="tu_contraseña_mysql", # Contraseña MySQL
             database="alarma"          # Nombre de DB
@@ -53,14 +53,17 @@ def on_message(client, userdata, msg):
         print(f"Error al procesar MQTT: {e}")
 
 # -----------------------------
-# Inicializar cliente MQTT en hilo separado
+# Inicializar cliente MQTT en hilo separado (broker público)
 # -----------------------------
 def start_mqtt():
     client = mqtt.Client()
-    client.username_pw_set("tu_usuario_hivemq", "tu_contraseña_hivemq")
-    client.tls_set()  # TLS/SSL
+    
+    # Broker público sin usuario/contraseña
+    # client.username_pw_set("usuario", "contraseña")  # comentado
+    # client.tls_set()  # comentado
+
     client.on_message = on_message
-    client.connect("fab3aac0cefa411c98a7ebdf5a256479.s1.eu.hivemq.cloud", 8883)
+    client.connect("broker.hivemq.com", 1883)  # broker público
     client.subscribe("alarma/movimiento")
     client.loop_forever()
 
@@ -144,8 +147,5 @@ def get_records_json():
 # -----------------------------
 # Ejecutar Flask (PythonAnywhere no necesita __main__)
 # -----------------------------
-# -----------------------------
-# Iniciar la aplicación Flask
-# -----------------------------
-#if __name__ == '__main__':
-#    app.run(debug=True)
+# if __name__ == '__main__':
+#     app.run(debug=True)
