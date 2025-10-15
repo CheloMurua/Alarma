@@ -10,22 +10,17 @@ CORS(app) # Habilita CORS para todas las rutas de la aplicación
 
 # Función para crear la conexión a la base de datos
 def create_connection():
-    connection = None
+    #connection = None
     try:
-        connection = mysql.connector.connect(
-            host="",  # Cambia esto por la IP de tu servidor MySQL
-            user="",  # Cambia por tu usuario MySQL
-            password="",  # Cambia por tu contraseña MySQL
-            database=""  # Cambia por tu base de datos
+            connection = mysql.connector.connect(
+            host="mchelom.mysql.pythonanywhere-services.com",  # Cambia esto por la IP de tu servidor MySQL
+            user="mchelom",  # Cambia por tu usuario MySQL
+            password="Cmsam+2458739150",  # Cambia por tu contraseña MySQL
+            database="mchelom$alarma-esp32"  # Cambia por tu base de datos
         )
     except Error as e:
         print(f"Error al conectar con la base de datos: {e}")
     return connection
-
-@app.route('/')
-def hello_world():
-    return 'Hello from Flask!'
-
 
 # Ruta para insertar datos en la base de datos
 @app.route('/insert', methods=['POST'])
@@ -240,9 +235,6 @@ def show_records():
 
     except Error as e:
         return jsonify({"status": "error", "message": str(e)}), 500
-
-
-
 
 # Nuevo endpoint para obtener registros en formato JSON
 @app.route('/api/records', methods=['GET'])
