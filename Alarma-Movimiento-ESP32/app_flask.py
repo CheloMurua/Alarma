@@ -22,11 +22,6 @@ def create_connection():
         print(f"Error al conectar con la base de datos: {e}")
     return connection
 
-@app.route('/')
-def hello_world():
-    return 'Hello from Flask!'
-
-
 # Ruta para insertar datos en la base de datos
 @app.route('/insert', methods=['POST'])
 def insert_data():
