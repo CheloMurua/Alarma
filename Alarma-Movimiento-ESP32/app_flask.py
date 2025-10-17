@@ -13,9 +13,9 @@ def create_connection():
     try:
         connection = mysql.connector.connect(
             host="mchelom.mysql.pythonanywhere-services.com",
-            user="mchelom",
-            password="Cmsam+2458739150",
-            database="mchelom$alarma-esp32"
+            user="",
+            password="",
+            database=""
         )
         return connection
     except Error as e:
