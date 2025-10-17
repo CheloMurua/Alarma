@@ -24,6 +24,7 @@ void setup() {
   }
   Serial.println("Conectado a WiFi");
 }
+
 void loop() {
   unsigned long currentMillis = millis();
 
@@ -107,31 +108,3 @@ void sendMovementData() {
     Serial.println("Error en la conexión WiFi");
   }
 }
-
-/*
- * Antes el sistema para enviar notificación y guardar los datos en una base de datos
- * necesitaban que se realice una acción para luego realizar la otra, al principio primero almacenaba
- * los datos en una base de datos y luego enviaba la notificación, luego probe enviando primero la notificación
- * pero luego investigando encontre esta solución que era mucho mejor porque permite enviar ambas
- * solicitudes HTTP casi en simultaneo, por lo que ahora el código practicamente guarda los datos 
- * y envía la notificación al mismo tiempo optimizando el flujo y permitiendo que se realicen
- * las 2 acciones sin demoras innecesarias entre ambas.
-
- * El endpoint que utilizo para tratar las notificaciones es un endpoint de prueba que ofrece Wokwi
- * y que estoy utilizando ya que no desarrolle una api para esa tarea.
-
- * Use WiFi porque ya estaba implementado en el proyecto original, pero MQTT o LoRa podrían haber 
- * sido una mejor opción porque MQTT es más eficiente para manejar redes con muchos dispositivos,
- * usa menos ancho de banda y es ideal para conexiones inestables. Además, tiene baja latencia,
- * lo que lo hace mejor para transmitir datos en tiempo real sin congestionar la red y sin dudas
- * se convierte en la mejor opción para proyectos IoT.
- * Mientras que LoRa ofrece un alcance mucho mayor que WiFi cubriendo grandes distancias y también
- * consume menos energía, lo que sería ideal si los sensores están distribuidos en áreas amplias 
- * (como un campo por ejemplo) y usan baterías.
- * En resumen, MQTT y LoRa, son más escalables y eficientes para grandes redes IoT que WiFi, 
- * aunque WiFi es más rápido y adecuado en redes pequeñas o ya existentes, cómo fue el caso en proyecto
- * que como se menciono antes, ya utilizaba WiFi
-
- En este link (https://github.com/geracatalas/wokwi_projects/tree/main) se encuentra el código fuente 
- del backend y también de la consulta SQL para crear la base de datos usada en este proyecto
-*/

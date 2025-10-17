@@ -2,25 +2,25 @@ from flask import Flask, request, jsonify, render_template_string
 from flask_cors import CORS
 import mysql.connector
 from mysql.connector import Error
-from datetime import datetime
-import pytz  # Libreria para manejo de zonas horarias
+from datetime import datetime, timezone
+import pytz  # Librería para manejo de zonas horarias
 
 app = Flask(__name__)
-CORS(app) # Habilita CORS para todas las rutas de la aplicación
+CORS(app)  # Habilita CORS para todas las rutas de la aplicación
 
 # Función para crear la conexión a la base de datos
 def create_connection():
-    #connection = None
     try:
-            connection = mysql.connector.connect(
-            host="mchelom.mysql.pythonanywhere-services.com",  # Cambia esto por la IP de tu servidor MySQL
-            user="mchelom",  # Cambia por tu usuario MySQL
-            password="Cmsam+2458739150",  # Cambia por tu contraseña MySQL
-            database="mchelom$alarma-esp32"  # Cambia por tu base de datos
+        connection = mysql.connector.connect(
+            host="mchelom.mysql.pythonanywhere-services.com",
+            user="mchelom",
+            password="Cmsam+2458739150",
+            database="mchelom$alarma-esp32"
         )
+        return connection
     except Error as e:
         print(f"Error al conectar con la base de datos: {e}")
-    return connection
+        return None
 
 # Ruta para insertar datos en la base de datos
 @app.route('/insert', methods=['POST'])
@@ -30,16 +30,16 @@ def insert_data():
 
     if descripcion:
         try:
-            # Obtiene la hora actual en la zona horaria de Argentina
+            # Hora actual en la zona horaria de Argentina
             tz_argentina = pytz.timezone('America/Argentina/Buenos_Aires')
-            argentina_time = datetime.now(tz_argentina)  # Hora de Argentina
+            argentina_time = datetime.now(tz_argentina)
 
             # Crea conexión a la base de datos
             connection = create_connection()
-            if connection.is_connected():
+            if connection and connection.is_connected():
                 cursor = connection.cursor()
                 sql_query = "INSERT INTO movimientos (timestamp, descripcion) VALUES (%s, %s)"
-                cursor.execute(sql_query, (argentina_time, descripcion))  # Guarda hora en formato argentino
+                cursor.execute(sql_query, (argentina_time, descripcion))
                 connection.commit()
                 cursor.close()
                 connection.close()
@@ -49,13 +49,12 @@ def insert_data():
     else:
         return jsonify({"status": "error", "message": "Datos inválidos"}), 400
 
-
 # Ruta para mostrar los registros en formato HTML con tabla, CSS y filtro de fechas
 @app.route('/records', methods=['GET', 'POST'])
 def show_records():
     try:
         connection = create_connection()
-        if connection.is_connected():
+        if connection and connection.is_connected():
             cursor = connection.cursor()
 
             # Filtro de fechas basado en la solicitud POST (si existe)
@@ -129,7 +128,6 @@ def show_records():
                 <script>
                     let previousData = null;
 
-                    // Solicitar permiso para las notificaciones
                     function requestNotificationPermission() {
                         if (Notification.permission !== "granted") {
                             Notification.requestPermission().then(permission => {
@@ -140,72 +138,57 @@ def show_records():
                         }
                     }
 
-                    // Mostrar una notificación de nuevo movimiento
                     function showNotification() {
                         if (Notification.permission === "granted") {
                             new Notification("Nuevo Movimiento Detectado", {
                                 body: "¡Se ha detectado un nuevo movimiento en el sistema!",
-                                icon: "https://example.com/icon.png" // Opcional: URL de un icono de notificación
+                                icon: "https://example.com/icon.png"
                             });
                         }
                     }
 
-                    // Consultar datos de la API y comparar con los datos previos
                     function fetchData() {
                         fetch('/api/records')
                             .then(response => response.json())
                             .then(data => {
                                 if (data.status === 'success') {
                                     const newData = JSON.stringify(data.records);
-
-                                    // Si los datos han cambiado, mostrar notificación
                                     if (previousData && previousData !== newData) {
-                                        // alert('¡Se ha detectado un nuevo movimiento!');
                                         showNotification();
                                     }
-
                                     previousData = newData;
                                 }
                             })
                             .catch(error => console.error('Error al obtener datos:', error));
                     }
 
-                    // Configurar actualización cada 5 segundos y solicitar permiso para notificaciones
                     setInterval(fetchData, 5000);
                     requestNotificationPermission();
 
-                    // Función para ordenar la tabla
                     function sortTable(columnIndex) {
                         const table = document.querySelector('table');
                         const tbody = table.querySelector('tbody');
                         const rows = Array.from(tbody.querySelectorAll('tr'));
-                        // Cambiar el estado de ordenamiento a 'descending' para mostrar el registro más actual primero
                         let isAscending = table.dataset.sortDirection === 'ascending';
 
-                        // Si no hay estado de ordenamiento establecido, inicialmente ordenamos de forma descendente
                         if (table.dataset.sortDirection === undefined) {
-                            isAscending = false; // Mostrar el registro más actual primero
-                            table.dataset.sortDirection = 'descending'; // Inicializar el estado
+                            isAscending = false;
+                            table.dataset.sortDirection = 'descending';
                         }
 
                         rows.sort((rowA, rowB) => {
                             const cellA = rowA.querySelectorAll('td')[columnIndex].textContent.trim();
                             const cellB = rowB.querySelectorAll('td')[columnIndex].textContent.trim();
 
-                            if (columnIndex === 1) { // Si es la columna de fecha y hora
-                                // Convertir las fechas y horas al formato adecuado
+                            if (columnIndex === 1) {
                                 const [dateA, timeA] = cellA.split(' ');
                                 const [dateB, timeB] = cellB.split(' ');
-
                                 const [dayA, monthA, yearA] = dateA.split('/').map(Number);
                                 const [dayB, monthB, yearB] = dateB.split('/').map(Number);
                                 const [hoursA, minutesA] = timeA.split(':').map(Number);
                                 const [hoursB, minutesB] = timeB.split(':').map(Number);
-
-                                // Crear objetos Date para las comparaciones
                                 const dateTimeA = new Date(yearA, monthA - 1, dayA, hoursA, minutesA);
                                 const dateTimeB = new Date(yearB, monthB - 1, dayB, hoursB, minutesB);
-
                                 return isAscending ? dateTimeA - dateTimeB : dateTimeB - dateTimeA;
                             } else {
                                 return isAscending
@@ -215,15 +198,12 @@ def show_records():
                         });
 
                         rows.forEach(row => tbody.appendChild(row));
-                        table.dataset.sortDirection = isAscending ? 'descending' : 'ascending'; // Alternar el estado para futuras ordenaciones
-                        showPage(currentPage); // Actualizar la vista de la página actual después de ordenar
+                        table.dataset.sortDirection = isAscending ? 'descending' : 'ascending';
                     }
 
-                    // Al cargar la tabla por primera vez, llamamos a la función de ordenamiento
                     document.addEventListener('DOMContentLoaded', () => {
-                        sortTable(1); // Ordenar por fecha y hora inicialmente
+                        sortTable(1);
                     });
-
 
                     document.querySelector('input[name="start_date"]').max = document.querySelector('input[name="end_date"]').max = new Date().toISOString().split("T")[0];
                 </script>
@@ -236,34 +216,76 @@ def show_records():
     except Error as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
-# Nuevo endpoint para obtener registros en formato JSON
+# Endpoint para obtener registros en formato JSON
 @app.route('/api/records', methods=['GET'])
 def get_records_json():
     try:
         connection = create_connection()
-        if connection.is_connected():
+        if connection and connection.is_connected():
             cursor = connection.cursor()
             cursor.execute("SELECT id, timestamp, descripcion FROM movimientos")
             records = cursor.fetchall()
             cursor.close()
             connection.close()
 
-            # Formatea los registros en JSON
             json_records = [
                 {
                     "id": record[0],
-                    "timestamp": record[1].strftime('%d/%m/%Y %H:%M:%S'),  # Formato deseado para JSON
+                    "timestamp": record[1].astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
                     "descripcion": record[2]
                 }
                 for record in records
             ]
-
             return jsonify({"status": "success", "records": json_records}), 200
 
     except Error as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
+# ENDPOINTS para Grafana
+@app.route('/', methods=['GET'])
+def health_check():
+    return 'OK', 200
+
+@app.route('/search', methods=['POST'])
+def search_grafana():
+    return jsonify(['Movimiento Detectado'])
+
+@app.route('/query', methods=['POST'])
+def query_grafana():
+    req = request.get_json()
+    response_data = []
+
+    for target in req.get('targets', []):
+        metric_name = target.get('target')
+        connection = create_connection()
+        if not connection or not connection.is_connected():
+            continue
+
+        try:
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute("SELECT timestamp, descripcion FROM movimientos")
+            records = cursor.fetchall()
+            cursor.close()
+            connection.close()
+
+            datapoints = []
+            for record in records:
+                ts_utc = record['timestamp'].astimezone(pytz.utc).timestamp() * 1000
+                datapoints.append([1, int(ts_utc)])
+
+            response_data.append({
+                "target": metric_name,
+                "datapoints": datapoints
+            })
+
+        except Exception as e:
+            print(f"Error en /query: {e}")
+            if connection and connection.is_connected():
+                connection.close()
+            continue
+
+    return jsonify(response_data)
 
 # Iniciar la aplicación
-#if __name__ == '__main__':
-#    app.run(debug=True)
+# if __name__ == '__main__':
+#     app.run(debug=True)
